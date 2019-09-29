@@ -1,0 +1,5 @@
+﻿  abstractShader.cc
+  shaderProgram.cc
+  Generating Code...
+C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\VC\VCTargets\Microsoft.CppCommon.targets(381,5): warning MSB8015: Forcing a rebuild of all source files due to the contents of "C:\Users\Matheus\source\repos\OpenGL\Shaders\Debug\Shaders.tlog\CL.command.1.tlog" being invalid.
+  Shaders.vcxproj -> C:\Users\Matheus\source\repos\OpenGL\Debug\Shaders.lib

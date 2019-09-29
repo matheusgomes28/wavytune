@@ -1,0 +1,4 @@
+﻿  textReader.cc
+c:\users\matheus\source\repos\opengl\fileio\textreader.cc(71): warning C4244: 'return': conversion from 'std::streamoff' to 'unsigned int', possible loss of data
+c:\users\matheus\source\repos\opengl\fileio\textreader.cc(78): warning C4244: 'initializing': conversion from 'std::streamoff' to 'unsigned int', possible loss of data
+  FileIO.vcxproj -> C:\Users\Matheus\source\repos\OpenGL\Debug\FileIO.lib
