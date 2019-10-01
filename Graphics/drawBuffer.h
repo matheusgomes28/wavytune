@@ -12,11 +12,11 @@ class Indices;
 class ColourData;
 class DrawBuffer
 {
-public:
 	using IndicesPtr = std::unique_ptr<Indices>;
 	using ColourDataPtr = std::unique_ptr<ColourData>;
 	using DrawData2Ptr = std::unique_ptr<DrawData2>;
 	using DrawData3Ptr = std::unique_ptr<DrawData3>;
+public:
 
 	DrawBuffer();
 	DrawBuffer(const std::string& desc);
@@ -38,7 +38,7 @@ public:
 	std::string getDescription() const;
 	void setDescription(const std::string& texels);
 
-	virtual glm::mat4 getTransform() const = 0;
+	//! virtual glm::mat4 getTransform() const = 0;
 
 private:
 	DrawData3Ptr verticesPtr_;
@@ -47,6 +47,6 @@ private:
 	IndicesPtr indicesPtr_;
 	ColourDataPtr colourPtr_;
 	std::string description_;
-	virtual void setUp() = 0;
+	//! virtual void setUp() = 0;
 };
 #endif

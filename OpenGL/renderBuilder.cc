@@ -3,10 +3,50 @@
 #include "GLAbstractions/vao.h"
 #include "GLAbstractions/vbo.h"
 #include "GLAbstractions/vertexAttribute.h"
+#include "Graphics/drawData3.h"
+#include "Graphics/colourdata.h"
+#include "Graphics/drawBuffer.h"
 
 AbstractRenderer* RenderBuilder::buildBarRenderer() const
 {
 	BarRenderer* rendererPtr = new BarRenderer();
+	DrawBuffer* barbuffer = new DrawBuffer();
+	
+	DrawData3* vertices = new DrawData3;
+	vertices->setData({
+		{0, 0, 0},
+		{0, 1, 0},
+		{1, 1, 0},
+		{0, 0, 0},
+		{1, 1, 0},
+		{1, 0, 0}
+	});
+	barbuffer->setVertices(vertices);
+
+	DrawData3* normals = new DrawData3;
+	normals->setData({
+		{0, 0, 1},
+		{0, 0, 1},
+		{0, 0, 1},
+		{0, 0, 1},
+		{0, 0, 1},
+		{0, 0, 1}
+	});
+	barbuffer->setNormals(normals);
+
+	ColourData* colours = new ColourData;
+	colours->setData({
+		{255, 0, 0, 1},
+		{255, 0, 0, 1},
+		{255, 0, 0, 1},
+		{255, 0, 0, 1},
+		{255, 0, 0, 1},
+		{255, 0, 0, 1}
+	});
+	barbuffer->setColours(colours);
+
+
+	
 
 
 	// Set the VAO and that here
