@@ -3,6 +3,8 @@
 #include "abstractRenderer.h"
 
 
+//! TODO : Resume this once the multi type renderers
+//! have been implemented
 class BarRenderer : AbstractRenderer
 {
 public:
@@ -12,6 +14,5 @@ public:
 	void render() override;
 	void createGPUBuffers() override;
 	void sendGPUData() override;
-
 };
 #endif
