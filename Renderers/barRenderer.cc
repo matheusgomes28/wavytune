@@ -1,3 +1,4 @@
+/*
 #include "stdafx.h"
 #include "barRenderer.h"
 
@@ -35,3 +36,4 @@ void BarRenderer::createGPUBuffers()
 	// TODO: Make sure these are delete properly
 	// VertexAttribute
 }
+*/

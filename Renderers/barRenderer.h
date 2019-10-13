@@ -1,3 +1,4 @@
+/*
 #ifndef RENDERERS_BAR_RENDERER_H
 #define RENDERERS_BAR_RENDERER_H
 #include "abstractRenderer.h"
@@ -16,3 +17,4 @@ public:
 	void sendGPUData() override;
 };
 #endif
+*/

@@ -1,3 +1,4 @@
+/*
 #ifndef GRAPHICS_BAR_BUFFER_H
 #define GRAPHICS_BAR_BUFFER_H
 #include "stdafx.h"
@@ -20,3 +21,4 @@ private:
 	float width_;
 };
 #endif
+*/

@@ -21,47 +21,18 @@ void VBO::generateId()
 	setId(newBuf);
 }
 
-void VBO::addData(const std::vector<glm::vec4>& data) const
+void VBO::allocateMemory(const unsigned& size) const
 {
 	if (isValid()) {
 		glBindBuffer(GL_ARRAY_BUFFER, getId());
-
-		const unsigned VECTOR_SIZE = data.size();
-		const unsigned ELEMENT_SIZE = sizeof(glm::vec4);
-		glBufferData(GL_ARRAY_BUFFER, VECTOR_SIZE * ELEMENT_SIZE, &data[0], GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_STATIC_DRAW);
 	}
 }
 
-void VBO::addData(const std::vector<glm::vec3>& data) const
+void VBO::addData(const void* data, const unsigned& size, const unsigned& offset) const
 {
 	if (isValid()) {
 		glBindBuffer(GL_ARRAY_BUFFER, getId());
-
-		const unsigned VECTOR_SIZE = data.size();
-		const unsigned ELEMENT_SIZE = sizeof(glm::vec3);
-		glBufferData(GL_ARRAY_BUFFER, VECTOR_SIZE * ELEMENT_SIZE, &data[0], GL_STATIC_DRAW);
+		glBufferSubData(GL_ARRAY_BUFFER, offset, size, data);
 	}
 }
-
-void VBO::addData(const std::vector<glm::vec2>& data) const
-{
-	if (isValid()) {
-		glBindBuffer(GL_ARRAY_BUFFER, getId());
-
-		const unsigned VECTOR_SIZE = data.size();
-		const unsigned ELEMENT_SIZE = sizeof(glm::vec2);
-		glBufferData(GL_ARRAY_BUFFER, VECTOR_SIZE * ELEMENT_SIZE, &data[0], GL_STATIC_DRAW);
-	}
-}
-
-void VBO::addData(const std::vector<unsigned>& data) const
-{
-	if (isValid()) {
-		glBindBuffer(GL_ARRAY_BUFFER, getId());
-
-		const unsigned VECTOR_SIZE = data.size();
-		const unsigned ELEMENT_SIZE = sizeof(unsigned);
-		glBufferData(GL_ARRAY_BUFFER, VECTOR_SIZE * ELEMENT_SIZE, &data[0], GL_STATIC_DRAW);
-	}
-}
-

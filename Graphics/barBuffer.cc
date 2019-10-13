@@ -1,3 +1,4 @@
+/*
 #include "stdafx.h"
 #include "barBuffer.h"
 #include "drawData2.h"
@@ -63,3 +64,4 @@ void BarBuffer::setUp()
 	setNormals(normals);
 	setTexels(texels);
 }
+*/

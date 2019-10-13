@@ -6,8 +6,6 @@
 class ShaderProgram;
 class DrawBuffer;
 class Entity;
-class VAO;
-class VBO;
 
 
 //! TODO : Problem! May have different types of data to
@@ -31,14 +29,14 @@ class VBO;
 class AbstractRenderer
 {
 public:
-	AbstractRenderer();
-	virtual ~AbstractRenderer();
 	
 	virtual void render() = 0;
 	virtual void sendGPUData() = 0;
 	virtual void createGPUBuffers() = 0;
-	void addEntityData(Entity*, DrawBuffer* data) = 0;
+	virtual void addEntityData(Entity* ent, DrawBuffer* data) = 0;
 	
-	void setShaderProgram(ShaderProgram* program);
+protected:
+	virtual void setShader(ShaderProgram* program) = 0;
+	virtual ShaderProgram getShader() = 0;
 };
 #endif

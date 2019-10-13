@@ -12,6 +12,11 @@ public:
 	virtual const DrawVector& getData() const = 0;
 	virtual void setData(const DrawVector& data) = 0;
 
+	unsigned getGPUSize() const
+	{
+		return sizeof(T) * data_.size();
+	}
+
 protected:
 	std::vector<T> data_;
 };

@@ -10,10 +10,24 @@ public:
 	VBO();
 	VBO(const std::string& name);
 
-	void addData(const std::vector<glm::vec4>& data) const;
-	void addData(const std::vector<glm::vec3>& data) const;
-	void addData(const std::vector<glm::vec2>& data) const;
-	void addData(const std::vector<unsigned>& data) const;
+	void allocateMemory(const unsigned& size) const;
+
+	template <typename T> 
+	void addData(const T& data, const unsigned& offset = 0) const
+	{
+		const unsigned ELEM_SIZE = sizeof(T);
+		addData(&data, ELEM_SIZE, offset);
+	}
+
+	template <typename T>
+	void addData(const std::vector<T>& data, const unsigned& offset = 0) const
+	{
+		const unsigned ELEM_SIZE = sizeof(T);
+		const unsigned VECTOR_SIZE = data.size();
+		addData(&data, ELEM_SIZE * VECTOR_SIZE, offset);
+	}
+
+	void addData(const void* data, const unsigned& size, const unsigned& offset=0) const;
 
 private:
 	void generateId() override;

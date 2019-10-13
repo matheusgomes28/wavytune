@@ -9,6 +9,9 @@ class VBO;
 class Entity;
 class DrawBuffer;
 class ShaderProgram;
+
+enum class BUFFER_TYPE { VERTEX, NORMAL, TEXTURE };
+
 class ConcreteRenderer : AbstractRenderer
 {
 	using EntityDataMap = std::map<Entity*, std::vector<DrawBuffer*>>;
@@ -16,15 +19,27 @@ class ConcreteRenderer : AbstractRenderer
 public:
 	ConcreteRenderer();
 	~ConcreteRenderer();
-	
 
 	//! overrides
+	void render() override;
+	void sendGPUData() override;
+	void createGPUBuffers() override;
+	void addEntityData(Entity* entPtr, DrawBuffer* dataPtr) override;
 	
 	
 protected:
 	EntityDataMap entityData_;
-	std::vector<VAO*> vaos_;
-	std::vector<VBO*> vbos_;
+	VAO* vao_;
+	std::map<BUFFER_TYPE, VBO*> vbos_;
 	ShaderProgram* shaderProgram_;
+
+
+	void setShader(ShaderProgram* program) override;
+	ShaderProgram getShader() override;
+
+private:
+	unsigned getVertexMemoryNeeded() const;
+	unsigned getNormalMemoryNeeded() const;
+
 };
 #endif

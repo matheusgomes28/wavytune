@@ -6,7 +6,6 @@
 #include "Graphics/drawBuffer.h"
 #include "Graphics/drawData2.h"
 #include "Graphics/drawData3.h"
-#include "Graphics/barBuffer.h"
 #include "Graphics/entity.h"
 
 // The look at stuff

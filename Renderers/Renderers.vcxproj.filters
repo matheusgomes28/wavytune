@@ -1,13 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="abstractRenderer.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="barRenderer.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="concreteRenderer.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -22,6 +22,10 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="barRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="modelRenderer.h" />
+    <ClInclude Include="concreteRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
