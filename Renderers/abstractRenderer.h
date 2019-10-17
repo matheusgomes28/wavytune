@@ -36,7 +36,7 @@ public:
 	virtual void addEntityData(Entity* ent, DrawBuffer* data) = 0;
 	
 protected:
-	virtual void setShader(ShaderProgram* program) = 0;
-	virtual ShaderProgram getShader() = 0;
+	virtual void setShader() = 0;
+	virtual ShaderProgram* getShader() const = 0;
 };
 #endif

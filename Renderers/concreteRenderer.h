@@ -10,7 +10,7 @@ class Entity;
 class DrawBuffer;
 class ShaderProgram;
 
-enum class BUFFER_TYPE { VERTEX, NORMAL, TEXTURE };
+enum class BUFFER_TYPE { VERTEX, NORMAL, TEXTURE, COLOUR};
 
 class ConcreteRenderer : AbstractRenderer
 {
@@ -31,15 +31,18 @@ protected:
 	EntityDataMap entityData_;
 	VAO* vao_;
 	std::map<BUFFER_TYPE, VBO*> vbos_;
-	ShaderProgram* shaderProgram_;
 
-
-	void setShader(ShaderProgram* program) override;
-	ShaderProgram getShader() override;
+	void setShader() override;
+	ShaderProgram* getShader() const override;
 
 private:
+
+	// TODO : Could do function that uses the buffer
+	// type to return the correct amount of data
 	unsigned getVertexMemoryNeeded() const;
 	unsigned getNormalMemoryNeeded() const;
+
+	ShaderProgram* shaderProgram_;
 
 };
 #endif

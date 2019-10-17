@@ -6,6 +6,8 @@
 #include "Graphics/drawData3.h"
 #include "Graphics/drawBuffer.h"
 
+#include "Shaders/shaderProgram.h"
+
 
 ConcreteRenderer::ConcreteRenderer()
 	: shaderProgram_(nullptr),
@@ -23,15 +25,13 @@ ConcreteRenderer::~ConcreteRenderer()
 	// Delete each vao and clear vec
 	if (vao_) delete vao_;
 
-	// Delete each vbo and clear vec
-	// TODO : Make sure the VBOs are properly
-	// deleted here
-	/*
-	for (VBO* vboPtr : vbos_) {
-		if (vboPtr) delete vboPtr;
+	// Delete the buffers this renderer owns
+	for (auto kvPair : vbos_) {
+		if (kvPair.second) {
+			delete kvPair.second;
+		}
 	}
 	vbos_.clear();
-	*/
 
 	// Delete the entity data
 	for (auto kvPair : entityData_) {
@@ -46,6 +46,27 @@ ConcreteRenderer::~ConcreteRenderer()
 	entityData_.clear();
 }
 
+void ConcreteRenderer::setShader()
+{
+	// Make sure we delete it if its 
+	// already created
+	if (shaderProgram_) {
+		delete shaderProgram_;
+		shaderProgram_ = nullptr;
+	}
+
+	// TODO : Create the shader objects here
+	// TODO : Remove hard-coded path for the shaders
+	const std::string VS_PATH = "C:\\Users\\Matheus\\audioVisualiser\\vs.glsl";
+	const std::string FS_PATH = "C:\\Users\\Matheus\\audioVisualiser\\fs.glsl";
+	shaderProgram_ = new ShaderProgram(VS_PATH, FS_PATH);
+}
+
+ShaderProgram* ConcreteRenderer::getShader() const
+{
+	return shaderProgram_;
+}
+
 void ConcreteRenderer::createGPUBuffers()
 {
 	// Make sure these are smart pointers
@@ -56,9 +77,6 @@ void ConcreteRenderer::createGPUBuffers()
 
 	VBO* normalVBO = new VBO{};
 	vbos_.insert({ BUFFER_TYPE::NORMAL, normalVBO });
-
-	VBO* texelVBO = new VBO{};
-	vbos_.insert({ BUFFER_TYPE::TEXTURE, texelVBO });
 }
 
 void ConcreteRenderer::sendGPUData()
@@ -84,7 +102,7 @@ void ConcreteRenderer::sendGPUData()
 
 
 		// TODO : Add the logic for the matrices here
-		// for each entity
+		// for each entity, use SSBOs maybe?
 	}
 
 
@@ -111,6 +129,12 @@ void ConcreteRenderer::sendGPUData()
 void ConcreteRenderer::render()
 {
 	//! TODO : Implement this
+
+	//! The last piece of the puzzle. Problem is to
+	//! think about how to link the attributes and
+	//! buffers in the VAO. Specifically, where is the
+	//! best place to send the information to the GPU?
+	//! Would it be here or in the VAO object itself?
 }
 
 
