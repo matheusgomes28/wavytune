@@ -24,7 +24,7 @@ public:
 	void setUniform(const std::string& name, const glm::vec3& value) const;
 	void setUniform(const std::string& name, const glm::mat4& value) const;
 
-	void compileandLink();
+	void compileAndLink();
 	void use();
 	void unuse();
 

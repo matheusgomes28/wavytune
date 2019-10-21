@@ -5,14 +5,54 @@
 #include "GLAbstractions/vertexAttribute.h"
 #include "Graphics/drawData3.h"
 #include "Graphics/drawBuffer.h"
-
 #include "Shaders/shaderProgram.h"
+#include <GLFW/glfw3.h>
+#include <GL/glew.h>
+#include <cmath>
+
+std::vector<std::string> getError()
+{
+	std::vector<std::string> retVal;
+	GLenum error = glGetError();
+	while (error = glGetError() != GL_NO_ERROR) {
+
+		switch (error)
+		{
+		case GL_INVALID_ENUM:
+			retVal.push_back("Invalid enum.");
+			break;
+		case GL_INVALID_VALUE:
+			retVal.push_back("Invalid function value.");
+			break;
+		case GL_INVALID_OPERATION:
+			retVal.push_back("Invalid operation.");
+			break;
+		case GL_STACK_OVERFLOW:
+			retVal.push_back("stack overflow.");
+			break;
+		case GL_STACK_UNDERFLOW:
+			retVal.push_back("stack underflow.");
+			break;
+		case GL_OUT_OF_MEMORY:
+			retVal.push_back("Out of memory.");
+			break;
+		case GL_INVALID_FRAMEBUFFER_OPERATION:
+			retVal.push_back("Invalid framebuffer operation.");
+			break;
+		case GL_TABLE_TOO_LARGE:
+			retVal.push_back("Table is too large.");
+			break;
+		}
+	}
+	return retVal;
+}
 
 
 ConcreteRenderer::ConcreteRenderer()
 	: shaderProgram_(nullptr),
 	vao_(nullptr)
 {
+	setShader();
 }
 
 ConcreteRenderer::~ConcreteRenderer()
@@ -48,6 +88,7 @@ ConcreteRenderer::~ConcreteRenderer()
 
 void ConcreteRenderer::setShader()
 {
+	auto errors = getError();
 	// Make sure we delete it if its 
 	// already created
 	if (shaderProgram_) {
@@ -60,6 +101,8 @@ void ConcreteRenderer::setShader()
 	const std::string VS_PATH = "C:\\Users\\Matheus\\audioVisualiser\\vs.glsl";
 	const std::string FS_PATH = "C:\\Users\\Matheus\\audioVisualiser\\fs.glsl";
 	shaderProgram_ = new ShaderProgram(VS_PATH, FS_PATH);
+	shaderProgram_->compileAndLink();
+	errors = getError();
 }
 
 ShaderProgram* ConcreteRenderer::getShader() const
@@ -69,6 +112,7 @@ ShaderProgram* ConcreteRenderer::getShader() const
 
 void ConcreteRenderer::createGPUBuffers()
 {
+	auto errors = getError();
 	// Make sure these are smart pointers
 	vao_ = new VAO{};
 
@@ -77,10 +121,16 @@ void ConcreteRenderer::createGPUBuffers()
 
 	VBO* normalVBO = new VBO{};
 	vbos_.insert({ BUFFER_TYPE::NORMAL, normalVBO });
+	errors = getError();
 }
 
 void ConcreteRenderer::sendGPUData()
 {
+	getShader()->use();
+	auto errors = getError();
+	// Bind to VAO
+	glBindVertexArray(vao_->getId());
+
 	// Allocate enough memory at the buffers
 	VBO* vertexVBO = vbos_[BUFFER_TYPE::VERTEX];
 	vertexVBO->allocateMemory(getVertexMemoryNeeded());
@@ -114,6 +164,16 @@ void ConcreteRenderer::sendGPUData()
 	vertexAttribs->setStride(0);
 	vertexAttribs->setType(VERTEX_TYPE::FLOAT);
 	vao_->addBufferConfigs(vertexVBO, vertexAttribs);
+	GLint posPtr = 0;//glGetAttribLocation(getShader()->getAddress(), "aPos");
+	glVertexAttribPointer(
+		posPtr,
+		vertexAttribs->getSize(),
+		(int) vertexAttribs->getType(),
+		vertexAttribs->getNormalised(),
+		vertexAttribs->getStride(),
+		(void*) vertexAttribs->getOffset()
+	);
+	glEnableVertexAttribArray(posPtr);
 	
 	VertexAttribute* normalAttribs = new VertexAttribute;
 	normalAttribs->setOffset(0);
@@ -122,12 +182,25 @@ void ConcreteRenderer::sendGPUData()
 	normalAttribs->setStride(0);
 	normalAttribs->setType(VERTEX_TYPE::FLOAT);
 	vao_->addBufferConfigs(normalVBO, normalAttribs);
+	GLint norPtr = 1;// glGetAttribLocation(getShader()->getAddress(), "aNor");
+	glVertexAttribPointer(
+		norPtr,
+		normalAttribs->getSize(),
+		(int)normalAttribs->getType(),
+		normalAttribs->getNormalised(),
+		normalAttribs->getStride(),
+		(void*)normalAttribs->getOffset()
+	);
+	glEnableVertexAttribArray(norPtr);
+	glBindVertexArray(vao_->getId());
+	errors = getError();
 
-	
+	getShader()->unuse();
 }
 
-void ConcreteRenderer::render()
+void ConcreteRenderer::render(const glm::mat4& proj, const glm::mat4& view)
 {
+	auto errors = getError();
 	//! TODO : Implement this
 
 	//! The last piece of the puzzle. Problem is to
@@ -135,6 +208,31 @@ void ConcreteRenderer::render()
 	//! buffers in the VAO. Specifically, where is the
 	//! best place to send the information to the GPU?
 	//! Would it be here or in the VAO object itself?
+	getShader()->use();
+
+	float green = abs(0.6 + sin(glfwGetTime() * 2) / 2.0);
+	getShader()->setUniform("green", green);
+	getShader()->setUniform("proj", proj);
+	getShader()->setUniform("view", view);
+
+	glBindVertexArray(vao_->getId());
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glBindVertexArray(0);
+
+	getShader()->unuse();
+	errors = getError();
+}
+
+
+void ConcreteRenderer::addEntityData(Entity* entPtr, DrawBuffer* buffer)
+{
+	auto found = entityData_.find(entPtr);
+	if (found != end(entityData_)) {
+		found->second.push_back(buffer);
+	}
+	else {
+		entityData_[entPtr] = { buffer };
+	}
 }
 
 

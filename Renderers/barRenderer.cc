@@ -1,5 +1,5 @@
-/*
 #include "stdafx.h"
+/*
 #include "barRenderer.h"
 
 #include "GLAbstractions/vao.h"

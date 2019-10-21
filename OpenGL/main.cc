@@ -8,64 +8,18 @@
 #include "Graphics/drawData3.h"
 #include "Graphics/entity.h"
 
+#include "Renderers/concreteRenderer.h"
+#include "renderBuilder.h"
+
 // The look at stuff
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/transform.hpp>
-
 #include <iostream>
-
-
-struct BufferVBO {
-	GLuint vertices = 0;
-	GLuint normals = 0;
-	GLuint texels = 0;
-};
-
-BufferVBO createBuffers()
-{
-	BufferVBO vbo;
-
-	glGenBuffers(1, &vbo.vertices);
-	glGenBuffers(1, &vbo.normals);
-	glGenBuffers(1, &vbo.texels);
-
-	return vbo;
-}
-
-void sendBufferData(const DrawBuffer& buffer, const GLuint& shader, const GLuint& VAO, const BufferVBO& VBO)
-{
-	glBindVertexArray(VAO);
-
-	// TODO : guards to see if the data here is completely valid
-	const std::vector<glm::vec3>& vertices = buffer.getVertices().getData();
-	glBindBuffer(GL_ARRAY_BUFFER, VBO.vertices);
-	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
-	GLint posPtr = glGetAttribLocation(shader, "aPos");
-	glVertexAttribPointer(posPtr, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(posPtr);
-
-	// Normals
-	const std::vector<glm::vec3>& normals = buffer.getNormals().getData();
-	glBindBuffer(GL_ARRAY_BUFFER, VBO.normals);
-	glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
-	GLint norPtr = glGetAttribLocation(shader, "aNor");
-	glVertexAttribPointer(norPtr, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(norPtr);
-
-	// Texels
-	const std::vector<glm::vec2>& texels = buffer.getTexels().getData();
-	glBindBuffer(GL_ARRAY_BUFFER, VBO.texels);
-	glBufferData(GL_ARRAY_BUFFER, texels.size() * sizeof(glm::vec2), &texels[0], GL_STATIC_DRAW);
-	GLint texPtr = glGetAttribLocation(shader, "aTex");
-	glVertexAttribPointer(texPtr, 2, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(texPtr);
-}
 
 void resizeCallback(GLFWwindow* window, int width, int height)
 {
 	glViewport(0, 0, width, height);
 }
-
 
 // TODO : encapsulate all of this global look at stuff
 glm::vec3 eye;
@@ -133,10 +87,10 @@ glm::vec3 rotateVector(const glm::vec3& vector, const glm::vec3& from, const AXI
 void keyCallBack(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	if (key == GLFW_KEY_W && action == GLFW_PRESS) {
-		pos += glm::vec3{ 0, 0.5, 0 };
+		eye += glm::vec3{ 0, 0, 0.5 };
 	}
 	if (key == GLFW_KEY_S && action == GLFW_PRESS) {
-		pos += glm::vec3{ 0, -0.5, 0 };
+		eye += glm::vec3{ 0, 0, -0.5 };
 	}
 	if (key == GLFW_KEY_A && action == GLFW_PRESS) {
 		pos = rotateVector(pos, eye, AXIS::Y, glm::radians(10.0f));
@@ -169,24 +123,6 @@ int main(int argc, char* argv)
 
 	// Create the shader program
 	glewInit(); // Initialise all the openGL macros
-	const std::string VS_PATH = "C:\\Users\\Matheus\\audioVisualiser\\vs.glsl";
-	const std::string FS_PATH = "C:\\Users\\Matheus\\audioVisualiser\\fs.glsl";
-	ShaderProgram shader(VS_PATH, FS_PATH); // The shader program
-	shader.compileandLink();
-	shader.use();
-
-	// For the triangles
-	unsigned int VAO, VBO;
-	glGenVertexArrays(1, &VAO);
-	BufferVBO vbo = createBuffers();
-
-	// TODO : Create a class that inherits from this
-	BarBuffer buffer;
-	sendBufferData(buffer, shader.getAddress(), VAO, vbo);
-
-	eye = { 0, 0, 10 };
-	pos = { 0, 0, 0 };
-	up = { 0, 1, 0 };
 
 	glm::mat4 proj = glm::perspective<float>(
 		glm::radians(45.0f),
@@ -198,6 +134,15 @@ int main(int argc, char* argv)
 	// Callback from commands
 	glfwSetKeyCallback(window, keyCallBack);
 
+	eye = { 0, 0, 10 };
+	pos = { 0, 0, 0 };
+	up = { 0, 1, 0 };
+
+	// Create a bar renderer
+	AbstractRenderer* barRenderer = RenderBuilder::buildBarRenderer();
+	barRenderer->createGPUBuffers();
+	barRenderer->sendGPUData();
+
 	// Game loop
 	while (!glfwWindowShouldClose(window)) {
 		lookAt = glm::lookAt(
@@ -206,20 +151,13 @@ int main(int argc, char* argv)
 			up
 		);
 		glClear(GL_COLOR_BUFFER_BIT);
-		
-		// Green uniform 
-		float green = abs(0.5+sin(glfwGetTime()*2)/2.0);
-		shader.setUniform("green", green);
-		shader.setUniform("proj", proj);
-		shader.setUniform("view", lookAt);
 
-		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		barRenderer->render(proj, lookAt);
 
-
-		glBindVertexArray(0);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
+
+	delete barRenderer;
 	return 0;
 }

@@ -5,7 +5,7 @@ class AbstractRenderer;
 class RenderBuilder
 {
 public:	
-	AbstractRenderer* buildBarRenderer() const;
+	static AbstractRenderer* buildBarRenderer();
 
 
 	/*

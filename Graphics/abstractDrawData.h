@@ -7,8 +7,6 @@ class AbstractDrawData
 {
 public:
 	using DrawVector = std::vector<T>;
-
-
 	virtual const DrawVector& getData() const = 0;
 	virtual void setData(const DrawVector& data) = 0;
 

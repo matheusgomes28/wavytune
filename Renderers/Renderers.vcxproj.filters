@@ -24,8 +24,10 @@
     <ClInclude Include="barRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="modelRenderer.h" />
     <ClInclude Include="concreteRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="modelRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

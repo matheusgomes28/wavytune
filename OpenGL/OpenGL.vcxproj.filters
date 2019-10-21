@@ -17,17 +17,11 @@
     <ClCompile Include="main.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="drawables.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="renderBuilder.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="drawables.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="renderBuilder.h">
       <Filter>Header Files</Filter>
     </ClInclude>

@@ -1,5 +1,5 @@
-/*
 #include "stdafx.h"
+/*
 #include "barBuffer.h"
 #include "drawData2.h"
 #include "drawData3.h"

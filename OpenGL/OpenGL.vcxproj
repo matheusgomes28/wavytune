@@ -24,7 +24,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="drawables.cc" />
     <ClCompile Include="main.cc" />
     <ClCompile Include="renderBuilder.cc" />
   </ItemGroup>
@@ -40,7 +39,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="drawables.h" />
     <ClInclude Include="renderBuilder.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

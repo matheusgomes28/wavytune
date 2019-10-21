@@ -1,71 +1,49 @@
 #include "renderBuilder.h"
-#include "Renderers/barRenderer.h"
 #include "GLAbstractions/vao.h"
 #include "GLAbstractions/vbo.h"
 #include "GLAbstractions/vertexAttribute.h"
 #include "Graphics/drawData3.h"
 #include "Graphics/colourdata.h"
 #include "Graphics/drawBuffer.h"
+#include "Graphics/entity.h"
+#include "Renderers/abstractRenderer.h"
+#include "Renderers/concreteRenderer.h"
 
-AbstractRenderer* RenderBuilder::buildBarRenderer() const
+AbstractRenderer* RenderBuilder::buildBarRenderer()
 {
-	BarRenderer* rendererPtr = new BarRenderer();
-	DrawBuffer* barbuffer = new DrawBuffer();
-	
-	DrawData3* vertices = new DrawData3;
-	vertices->setData({
-		{0, 0, 0},
-		{0, 1, 0},
-		{1, 1, 0},
-		{0, 0, 0},
-		{1, 1, 0},
-		{1, 0, 0}
-	});
-	barbuffer->setVertices(vertices);
+	ConcreteRenderer* retVal = new ConcreteRenderer();
 
-	DrawData3* normals = new DrawData3;
-	normals->setData({
+	// Create the entity needed and the data needed
+
+	DrawBuffer* barBuffer = new DrawBuffer;
+	
+	std::vector<glm::vec3> vertArray = {
+		{0, 0, 0},
+		{0.5, 0, 0},
+		{0, 0.5, 0},
+		{0.5, 0, 0},
+		{0.5, 0.5, 0},
+		{0, 0.5, 0}
+	};
+	DrawData3* vertices = new DrawData3();
+	vertices->setData(vertArray);
+	barBuffer->setVertices(vertices);
+
+	std::vector<glm::vec3> normArray = {
 		{0, 0, 1},
 		{0, 0, 1},
 		{0, 0, 1},
 		{0, 0, 1},
 		{0, 0, 1},
 		{0, 0, 1}
-	});
-	barbuffer->setNormals(normals);
+	};
+	DrawData3* normals = new DrawData3();
+	normals->setData(normArray);
+	barBuffer->setNormals(normals);
 
-	ColourData* colours = new ColourData;
-	colours->setData({
-		{255, 0, 0, 1},
-		{255, 0, 0, 1},
-		{255, 0, 0, 1},
-		{255, 0, 0, 1},
-		{255, 0, 0, 1},
-		{255, 0, 0, 1}
-	});
-	barbuffer->setColours(colours);
+	Entity* barTopEntity = new Entity;
+	barTopEntity->setName("Bar entity");
 
-
-	
-
-
-	// Set the VAO and that here
-	VAO* vaoPtr = new VAO();
-	vaoPtr->setName("Bar Renderer VAO.");
-
-	// Set the VBO stuff here
-	VBO* vertexVBO = new VBO();
-	VBO* normalVBO = new VBO();
-	VBO* texelVBO = new VBO();
-	
-	
-	// Set the attribute stuff here
-	VertexAttribute* attr = new VertexAttribute();
-
-	// TODO : Finish this simple example
-
-	// Set the entity here (May have nothing in it tho)
-
-
-	return nullptr;
+	retVal->addEntityData(barTopEntity, barBuffer);
+	return retVal;
 }

@@ -3,6 +3,7 @@
 
 // TODO : make this class properly thread-safe
 unsigned Entity::nextId = 0;
+std::mutex Entity::idMutex;
 
 void Entity::assignId()
 {

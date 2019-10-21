@@ -2,6 +2,7 @@
 #define RENDERERS_ABSTRACT_RENDERER_H
 #include <vector>
 #include <map>
+#include <glm/glm.hpp>
 
 class ShaderProgram;
 class DrawBuffer;
@@ -30,7 +31,7 @@ class AbstractRenderer
 {
 public:
 	
-	virtual void render() = 0;
+	virtual void render(const glm::mat4& proj, const glm::mat4& view) = 0;
 	virtual void sendGPUData() = 0;
 	virtual void createGPUBuffers() = 0;
 	virtual void addEntityData(Entity* ent, DrawBuffer* data) = 0;

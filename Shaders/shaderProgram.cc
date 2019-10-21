@@ -24,7 +24,7 @@ GLuint ShaderProgram::generateAddress() const
 	return glCreateProgram();
 }
 
-void ShaderProgram::compileandLink()
+void ShaderProgram::compileAndLink()
 {
 	// Generate the address for this program
 	address_ = generateAddress();

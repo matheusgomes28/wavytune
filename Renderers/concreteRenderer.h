@@ -12,7 +12,7 @@ class ShaderProgram;
 
 enum class BUFFER_TYPE { VERTEX, NORMAL, TEXTURE, COLOUR};
 
-class ConcreteRenderer : AbstractRenderer
+class ConcreteRenderer : public AbstractRenderer
 {
 	using EntityDataMap = std::map<Entity*, std::vector<DrawBuffer*>>;
 
@@ -21,7 +21,7 @@ public:
 	~ConcreteRenderer();
 
 	//! overrides
-	void render() override;
+	void render(const glm::mat4& proj, const glm::mat4& view) override;
 	void sendGPUData() override;
 	void createGPUBuffers() override;
 	void addEntityData(Entity* entPtr, DrawBuffer* dataPtr) override;
