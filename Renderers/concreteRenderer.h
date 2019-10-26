@@ -41,8 +41,7 @@ private:
 	// type to return the correct amount of data
 	unsigned getVertexMemoryNeeded() const;
 	unsigned getNormalMemoryNeeded() const;
-
 	ShaderProgram* shaderProgram_;
-
+	unsigned pointsToDraw_;
 };
 #endif

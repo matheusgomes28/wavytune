@@ -11,10 +11,11 @@
 #include "Renderers/concreteRenderer.h"
 #include "renderBuilder.h"
 
-// The look at stuff
-#define GLM_ENABLE_EXPERIMENTAL
+// More testing for why things arent working
+#include "GLAbstractions/vbo.h"
+#include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
-#include <iostream>
+
 
 void resizeCallback(GLFWwindow* window, int width, int height)
 {
@@ -100,6 +101,10 @@ void keyCallBack(GLFWwindow* window, int key, int scancode, int action, int mods
 	}
 }
 
+unsigned vaoId = 0;
+unsigned vertexBufferId = 0;
+unsigned normalBufferId = 0;
+
 int main(int argc, char* argv)
 {
 	glewExperimental = GL_TRUE;
@@ -131,6 +136,54 @@ int main(int argc, char* argv)
 		100
 	);
 
+	/*
+	const std::string VS_PATH = "C:\\Users\\Matheus\\audioVisualiser\\vs.glsl";
+	const std::string FS_PATH = "C:\\Users\\Matheus\\audioVisualiser\\fs.glsl";
+	auto shaderProgram = ShaderProgram(VS_PATH, FS_PATH);
+	shaderProgram.compileAndLink();
+	shaderProgram.use();
+
+	// For the triangles
+	unsigned int VAO;
+	glGenVertexArrays(1, &VAO);
+
+	// TODO : Create a class that inherits from this
+	DrawBuffer barBuffer;
+	DrawData3* vertices = new DrawData3;
+	vertices->setData({
+		{0, 0, 0},
+		{0.5, 0, 0},
+		{0, 0.5, 0},
+		{0, 0.5, 0},
+		{0.5, 0, 0},
+		{0.5, 0.5, 0},
+	});
+	barBuffer.setVertices(vertices);
+
+	DrawData3* normals = new DrawData3;
+	normals->setData({
+		{0, 0, 1},
+		{0, 0, 1},
+		{0, 0, 1},
+		{0, 0, 1},
+		{0, 0, 1},
+		{0, 0, 1}
+	});
+	barBuffer.setNormals(normals);
+
+	DrawData2* texels = new DrawData2;
+	texels->setData({
+		{0, 0},
+		{0, 0},
+		{0, 0},
+		{0, 0},
+		{0, 0},
+		{0, 0}
+	});
+	barBuffer.setTexels(texels);
+	*/
+
+
 	// Callback from commands
 	glfwSetKeyCallback(window, keyCallBack);
 
@@ -151,13 +204,13 @@ int main(int argc, char* argv)
 			up
 		);
 		glClear(GL_COLOR_BUFFER_BIT);
-
+		
 		barRenderer->render(proj, lookAt);
-
+		glBindVertexArray(0);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
-
+	  
 	delete barRenderer;
 	return 0;
 }

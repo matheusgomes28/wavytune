@@ -50,7 +50,8 @@ std::vector<std::string> getError()
 
 ConcreteRenderer::ConcreteRenderer()
 	: shaderProgram_(nullptr),
-	vao_(nullptr)
+	vao_(nullptr),
+	pointsToDraw_{ 0 }
 {
 	setShader();
 }
@@ -126,9 +127,8 @@ void ConcreteRenderer::createGPUBuffers()
 
 void ConcreteRenderer::sendGPUData()
 {
+	pointsToDraw_ = 0;
 	getShader()->use();
-	auto errors = getError();
-	// Bind to VAO
 	glBindVertexArray(vao_->getId());
 
 	// Allocate enough memory at the buffers
@@ -148,6 +148,9 @@ void ConcreteRenderer::sendGPUData()
 
 			normalVBO->addData(data->getNormals().getData(), normalOffset);
 			normalOffset += data->getNormals().getGPUSize();
+
+			// Keep track of how many points to draw
+			pointsToDraw_ += data->getVertices().getData().size();
 		}
 
 
@@ -155,8 +158,8 @@ void ConcreteRenderer::sendGPUData()
 		// for each entity, use SSBOs maybe?
 	}
 
-
 	// Sort out the vertex attributes here
+	glBindBuffer(GL_ARRAY_BUFFER, vertexVBO->getId());
 	VertexAttribute* vertexAttribs = new VertexAttribute;
 	vertexAttribs->setOffset(0);
 	vertexAttribs->setSize(3);
@@ -164,17 +167,19 @@ void ConcreteRenderer::sendGPUData()
 	vertexAttribs->setStride(0);
 	vertexAttribs->setType(VERTEX_TYPE::FLOAT);
 	vao_->addBufferConfigs(vertexVBO, vertexAttribs);
-	GLint posPtr = 0;//glGetAttribLocation(getShader()->getAddress(), "aPos");
+	GLint posPtr = glGetAttribLocation(getShader()->getAddress(), "aPos");
 	glVertexAttribPointer(
 		posPtr,
 		vertexAttribs->getSize(),
 		(int) vertexAttribs->getType(),
 		vertexAttribs->getNormalised(),
 		vertexAttribs->getStride(),
-		(void*) vertexAttribs->getOffset()
+		0
 	);
 	glEnableVertexAttribArray(posPtr);
-	
+
+
+	glBindBuffer(GL_ARRAY_BUFFER, normalVBO->getId());
 	VertexAttribute* normalAttribs = new VertexAttribute;
 	normalAttribs->setOffset(0);
 	normalAttribs->setSize(3);
@@ -182,19 +187,16 @@ void ConcreteRenderer::sendGPUData()
 	normalAttribs->setStride(0);
 	normalAttribs->setType(VERTEX_TYPE::FLOAT);
 	vao_->addBufferConfigs(normalVBO, normalAttribs);
-	GLint norPtr = 1;// glGetAttribLocation(getShader()->getAddress(), "aNor");
+	GLint norPtr = glGetAttribLocation(getShader()->getAddress(), "aNor");
 	glVertexAttribPointer(
 		norPtr,
 		normalAttribs->getSize(),
 		(int)normalAttribs->getType(),
 		normalAttribs->getNormalised(),
 		normalAttribs->getStride(),
-		(void*)normalAttribs->getOffset()
+		0
 	);
 	glEnableVertexAttribArray(norPtr);
-	glBindVertexArray(vao_->getId());
-	errors = getError();
-
 	getShader()->unuse();
 }
 
@@ -215,8 +217,10 @@ void ConcreteRenderer::render(const glm::mat4& proj, const glm::mat4& view)
 	getShader()->setUniform("proj", proj);
 	getShader()->setUniform("view", view);
 
+	
+	// Enable vertices and normals for drawing
 	glBindVertexArray(vao_->getId());
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glDrawArrays(GL_TRIANGLES, 0, pointsToDraw_);
 	glBindVertexArray(0);
 
 	getShader()->unuse();

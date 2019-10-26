@@ -24,7 +24,7 @@ public:
 	{
 		const unsigned ELEM_SIZE = sizeof(T);
 		const unsigned VECTOR_SIZE = data.size();
-		addData(&data, ELEM_SIZE * VECTOR_SIZE, offset);
+		addData(&data[0], ELEM_SIZE * VECTOR_SIZE, offset);
 	}
 
 	void addData(const void* data, const unsigned& size, const unsigned& offset=0) const;
