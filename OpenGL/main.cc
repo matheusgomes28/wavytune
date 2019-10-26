@@ -28,15 +28,6 @@ glm::vec3 pos;
 glm::vec3 up;
 glm::mat4 lookAt;
 
-void changeLookAt(glm::mat4& lookAt, const glm::vec3& eye, const glm::vec3& pos, const glm::vec3& up)
-{
-	lookAt = glm::lookAt(
-		eye,
-		pos,
-		up
-	);
-}
-
 enum class AXIS {
 	X,
 	Y,
@@ -88,16 +79,30 @@ glm::vec3 rotateVector(const glm::vec3& vector, const glm::vec3& from, const AXI
 void keyCallBack(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	if (key == GLFW_KEY_W && action == GLFW_PRESS) {
-		eye += glm::vec3{ 0, 0, 0.5 };
+		pos = rotateVector(pos, { 0, 0, 0 }, AXIS::X, glm::radians(10.0f));
 	}
 	if (key == GLFW_KEY_S && action == GLFW_PRESS) {
-		eye += glm::vec3{ 0, 0, -0.5 };
+		pos = rotateVector(pos, { 0, 0, 0 }, AXIS::X, glm::radians(-10.f));
 	}
 	if (key == GLFW_KEY_A && action == GLFW_PRESS) {
-		pos = rotateVector(pos, eye, AXIS::Y, glm::radians(10.0f));
+		pos = rotateVector(pos, { 0, 0, 0 }, AXIS::Y, glm::radians(10.0f));
 	}
 	if (key == GLFW_KEY_D && action == GLFW_PRESS) {
-		pos = rotateVector(pos, eye, AXIS::Y, glm::radians(-10.0f));
+		pos = rotateVector(pos, { 0, 0, 0 }, AXIS::Y, glm::radians(-10.0f));
+	}
+
+	// Movements
+	if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
+		eye += glm::vec3{ 0, 0, -0.5 };
+	}
+	if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
+		eye += glm::vec3{ 0, 0, 0.5 };
+	}
+	if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) {
+		eye += glm::vec3{ 0.5, 0, 0 };
+	}
+	if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) {
+		eye += glm::vec3{ -0.5, 0, 0 };
 	}
 }
 
@@ -187,8 +192,8 @@ int main(int argc, char* argv)
 	// Callback from commands
 	glfwSetKeyCallback(window, keyCallBack);
 
-	eye = { 0, 0, 10 };
-	pos = { 0, 0, 0 };
+	eye = { 0, 0, 5 };
+	pos = { 0, 0, -1 };
 	up = { 0, 1, 0 };
 
 	// Create a bar renderer
@@ -200,9 +205,10 @@ int main(int argc, char* argv)
 	while (!glfwWindowShouldClose(window)) {
 		lookAt = glm::lookAt(
 			eye,
-			pos,
+			eye + pos,
 			up
 		);
+		
 		glClear(GL_COLOR_BUFFER_BIT);
 		
 		barRenderer->render(proj, lookAt);
