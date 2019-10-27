@@ -17,12 +17,40 @@
 #include <glm/gtx/transform.hpp>
 
 
+struct Camera
+{
+	glm::vec3 pos;
+	glm::vec3 front; 
+	glm::vec3 right;
+	glm::vec3 up;
+
+	glm::mat4 transform;
+
+
+	glm::vec3 getDirection() const
+	{
+		return transform * glm::vec4(front, 1);
+	}
+
+	glm::vec3 getUp() const
+	{
+		return transform * glm::vec4(up, 1);
+	}
+
+	glm::vec3 getRight() const
+	{
+		return transform * glm::vec4(right, 1);
+	}
+};
+
+
 void resizeCallback(GLFWwindow* window, int width, int height)
 {
 	glViewport(0, 0, width, height);
 }
 
 // TODO : encapsulate all of this global look at stuff
+Camera cam;
 glm::vec3 eye;
 glm::vec3 pos;
 glm::vec3 up;
@@ -79,30 +107,30 @@ glm::vec3 rotateVector(const glm::vec3& vector, const glm::vec3& from, const AXI
 void keyCallBack(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	if (key == GLFW_KEY_W && action == GLFW_PRESS) {
-		pos = rotateVector(pos, { 0, 0, 0 }, AXIS::X, glm::radians(10.0f));
+		cam.transform = glm::rotate(glm::radians(10.f), cam.getRight()) * cam.transform;
 	}
 	if (key == GLFW_KEY_S && action == GLFW_PRESS) {
-		pos = rotateVector(pos, { 0, 0, 0 }, AXIS::X, glm::radians(-10.f));
+		cam.transform = glm::rotate(glm::radians(-10.f), cam.getRight()) * cam.transform;
 	}
 	if (key == GLFW_KEY_A && action == GLFW_PRESS) {
-		pos = rotateVector(pos, { 0, 0, 0 }, AXIS::Y, glm::radians(10.0f));
+		cam.transform = glm::rotate(glm::radians(10.f), cam.getUp()) * cam.transform;
 	}
 	if (key == GLFW_KEY_D && action == GLFW_PRESS) {
-		pos = rotateVector(pos, { 0, 0, 0 }, AXIS::Y, glm::radians(-10.0f));
+		cam.transform = glm::rotate(glm::radians(-10.f), cam.getUp()) * cam.transform;
 	}
 
 	// Movements
 	if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
-		eye += glm::vec3{ 0, 0, -0.5 };
+		cam.pos += cam.getDirection()*0.5f;
 	}
 	if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
-		eye += glm::vec3{ 0, 0, 0.5 };
+		cam.pos -= cam.getDirection()*0.5f;
 	}
 	if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) {
-		eye += glm::vec3{ 0.5, 0, 0 };
+		cam.pos += cam.getRight()*0.5f;
 	}
 	if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) {
-		eye += glm::vec3{ -0.5, 0, 0 };
+		cam.pos -= cam.getRight()*0.5f;
 	}
 }
 
@@ -141,56 +169,15 @@ int main(int argc, char* argv)
 		100
 	);
 
-	/*
-	const std::string VS_PATH = "C:\\Users\\Matheus\\audioVisualiser\\vs.glsl";
-	const std::string FS_PATH = "C:\\Users\\Matheus\\audioVisualiser\\fs.glsl";
-	auto shaderProgram = ShaderProgram(VS_PATH, FS_PATH);
-	shaderProgram.compileAndLink();
-	shaderProgram.use();
-
-	// For the triangles
-	unsigned int VAO;
-	glGenVertexArrays(1, &VAO);
-
-	// TODO : Create a class that inherits from this
-	DrawBuffer barBuffer;
-	DrawData3* vertices = new DrawData3;
-	vertices->setData({
-		{0, 0, 0},
-		{0.5, 0, 0},
-		{0, 0.5, 0},
-		{0, 0.5, 0},
-		{0.5, 0, 0},
-		{0.5, 0.5, 0},
-	});
-	barBuffer.setVertices(vertices);
-
-	DrawData3* normals = new DrawData3;
-	normals->setData({
-		{0, 0, 1},
-		{0, 0, 1},
-		{0, 0, 1},
-		{0, 0, 1},
-		{0, 0, 1},
-		{0, 0, 1}
-	});
-	barBuffer.setNormals(normals);
-
-	DrawData2* texels = new DrawData2;
-	texels->setData({
-		{0, 0},
-		{0, 0},
-		{0, 0},
-		{0, 0},
-		{0, 0},
-		{0, 0}
-	});
-	barBuffer.setTexels(texels);
-	*/
-
 
 	// Callback from commands
 	glfwSetKeyCallback(window, keyCallBack);
+
+	cam.pos   = { 0,  0, 10 };
+	cam.front = { 0,  0, -1 };
+	cam.right = { 1,  0,  0 };
+	cam.up    = { 0,  1,  0 };
+	cam.transform = glm::mat4{ 1 };
 
 	eye = { 0, 0, 5 };
 	pos = { 0, 0, -1 };
@@ -204,12 +191,12 @@ int main(int argc, char* argv)
 	// Game loop
 	while (!glfwWindowShouldClose(window)) {
 		lookAt = glm::lookAt(
-			eye,
-			eye + pos,
-			up
+			cam.pos,
+			cam.pos + cam.getDirection(),
+			cam.getUp()
 		);
 		
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
 		barRenderer->render(proj, lookAt);
 		glBindVertexArray(0);

@@ -3,11 +3,13 @@
 #include "GLAbstractions/vao.h"
 #include "GLAbstractions/vbo.h"
 #include "GLAbstractions/vertexAttribute.h"
+#include "Graphics/colourData.h"
 #include "Graphics/drawData3.h"
 #include "Graphics/drawBuffer.h"
 #include "Shaders/shaderProgram.h"
 #include <GLFW/glfw3.h>
 #include <GL/glew.h>
+#include <glm/gtx/transform.hpp>
 #include <cmath>
 
 std::vector<std::string> getError()
@@ -122,7 +124,9 @@ void ConcreteRenderer::createGPUBuffers()
 
 	VBO* normalVBO = new VBO{};
 	vbos_.insert({ BUFFER_TYPE::NORMAL, normalVBO });
-	errors = getError();
+	
+	VBO* colourVBO = new VBO{};
+	vbos_.insert({ BUFFER_TYPE::COLOUR, colourVBO });
 }
 
 void ConcreteRenderer::sendGPUData()
@@ -136,11 +140,14 @@ void ConcreteRenderer::sendGPUData()
 	vertexVBO->allocateMemory(getVertexMemoryNeeded());
 	VBO* normalVBO = vbos_[BUFFER_TYPE::NORMAL];
 	normalVBO->allocateMemory(getNormalMemoryNeeded());
+	VBO* colourVBO = vbos_[BUFFER_TYPE::COLOUR];
+	colourVBO->allocateMemory(getColourMemoryNeeded());
 	
 	// Stores the offset (in bytes) to each buffer for
 	// where to start adding the next chunk of data
 	unsigned vertexOffset = 0;
 	unsigned normalOffset = 0;
+	unsigned colourOffset = 0;
 	for (auto& kvPair : entityData_) {
 		for (DrawBuffer* data : kvPair.second) {
 			vertexVBO->addData(data->getVertices().getData(), vertexOffset);
@@ -148,6 +155,9 @@ void ConcreteRenderer::sendGPUData()
 
 			normalVBO->addData(data->getNormals().getData(), normalOffset);
 			normalOffset += data->getNormals().getGPUSize();
+
+			colourVBO->addData(data->getColours().getData(), colourOffset);
+			colourOffset += data->getColours().getGPUSize();
 
 			// Keep track of how many points to draw
 			pointsToDraw_ += data->getVertices().getData().size();
@@ -174,9 +184,8 @@ void ConcreteRenderer::sendGPUData()
 		(int) vertexAttribs->getType(),
 		vertexAttribs->getNormalised(),
 		vertexAttribs->getStride(),
-		0
+		(GLvoid*) vertexAttribs->getOffset()
 	);
-	glEnableVertexAttribArray(posPtr);
 
 
 	glBindBuffer(GL_ARRAY_BUFFER, normalVBO->getId());
@@ -194,9 +203,32 @@ void ConcreteRenderer::sendGPUData()
 		(int)normalAttribs->getType(),
 		normalAttribs->getNormalised(),
 		normalAttribs->getStride(),
-		0
+		(GLvoid*) normalAttribs->getOffset()
 	);
+
+
+	glBindBuffer(GL_ARRAY_BUFFER, colourVBO->getId());
+	VertexAttribute* colourAttribute = new VertexAttribute;
+	colourAttribute->setOffset(0);
+	colourAttribute->setSize(4);
+	colourAttribute->setNormalised(true);
+	colourAttribute->setStride(0);
+	colourAttribute->setType(VERTEX_TYPE::FLOAT);
+	vao_->addBufferConfigs(colourVBO, colourAttribute);
+	GLint colPtr = glGetAttribLocation(getShader()->getAddress(), "aCol");
+	glVertexAttribPointer(
+		colPtr,
+		colourAttribute->getSize(),
+		(int)colourAttribute->getType(),
+		colourAttribute->getNormalised(),
+		colourAttribute->getStride(),
+		(GLvoid*) colourAttribute->getOffset()
+	);
+	glEnableVertexAttribArray(colPtr);
 	glEnableVertexAttribArray(norPtr);
+	glEnableVertexAttribArray(posPtr);
+
+	auto errors = getError();
 	getShader()->unuse();
 }
 
@@ -213,15 +245,24 @@ void ConcreteRenderer::render(const glm::mat4& proj, const glm::mat4& view)
 	getShader()->use();
 
 	float green = abs(0.6 + sin(glfwGetTime() * 2) / 2.0);
+	glm::mat4 rotate1 = glm::rotate((float) sin(glfwGetTime() * 2)*3.14159f, glm::vec3(1, 0, 0));
+	glm::mat4 rotate2 = glm::rotate((float) cos(glfwGetTime() * 2)*3.14159f, glm::vec3(0, 1, 0));
+
 	getShader()->setUniform("green", green);
 	getShader()->setUniform("proj", proj);
 	getShader()->setUniform("view", view);
+	getShader()->setUniform("rotate", rotate1*rotate2);
 
 	
+	// Enabling some features
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+
 	// Enable vertices and normals for drawing
 	glBindVertexArray(vao_->getId());
 	glDrawArrays(GL_TRIANGLES, 0, pointsToDraw_);
 	glBindVertexArray(0);
+
 
 	getShader()->unuse();
 	errors = getError();
@@ -257,6 +298,17 @@ unsigned ConcreteRenderer::getNormalMemoryNeeded() const
 	for (auto& kvPair : entityData_) {
 		for (DrawBuffer* dataPtr : kvPair.second) {
 			total += dataPtr->getNormals().getGPUSize();
+		}
+	}
+	return total;
+}
+
+unsigned ConcreteRenderer::getColourMemoryNeeded() const
+{
+	unsigned total = 0;
+	for (auto& kvPair : entityData_) {
+		for (DrawBuffer* dataPtr : kvPair.second) {
+			total += dataPtr->getColours().getGPUSize();
 		}
 	}
 	return total;

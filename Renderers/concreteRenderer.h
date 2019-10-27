@@ -41,6 +41,14 @@ private:
 	// type to return the correct amount of data
 	unsigned getVertexMemoryNeeded() const;
 	unsigned getNormalMemoryNeeded() const;
+	unsigned getColourMemoryNeeded() const;
+
+	
+	// TODO : Think of a smart way of doing the
+	// stuff below
+	//unsigned getMemoryNeeded(const BUFFER_TYPE& bt) const;
+
+
 	ShaderProgram* shaderProgram_;
 	unsigned pointsToDraw_;
 };
