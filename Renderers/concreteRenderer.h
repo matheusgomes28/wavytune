@@ -2,6 +2,7 @@
 #define RENDERERS_CONCRETE_RENDERER_h
 #include "abstractRenderer.h"
 #include <map>
+#include <exception>
 
 
 class VAO;
@@ -11,6 +12,55 @@ class DrawBuffer;
 class ShaderProgram;
 
 enum class BUFFER_TYPE { VERTEX, NORMAL, TEXTURE, COLOUR};
+
+
+
+// Maybe bring this to another file, modularise
+class ConcreteRendererException : public std::exception
+{
+public:
+	virtual const char* what() const override
+	{
+		return "Default concrete renderer error.";
+	}
+};
+
+class BufferNotFoundException : public ConcreteRendererException
+{
+public:
+	virtual const char* what() const override
+	{
+		return "Buffer was not found in memory.";
+	}
+};
+
+class VertexBufferNotFound : public BufferNotFoundException
+{
+public:
+	virtual const char* what() const override
+	{
+		return "Vertex buffer was not found.";
+	}
+};
+
+class NormalBufferNotFound : public BufferNotFoundException
+{
+public:
+	virtual const char* what() const override
+	{
+		return "Normal buffer was not found.";
+	}
+};
+
+class ColourBufferNotFound : public BufferNotFoundException
+{
+public:
+	virtual const char* what() const override
+	{
+		return "Colour buffer was not found.";
+	}
+};
+
 
 class ConcreteRenderer : public AbstractRenderer
 {
@@ -42,14 +92,24 @@ private:
 	unsigned getVertexMemoryNeeded() const;
 	unsigned getNormalMemoryNeeded() const;
 	unsigned getColourMemoryNeeded() const;
-
-	
 	// TODO : Think of a smart way of doing the
 	// stuff below
 	//unsigned getMemoryNeeded(const BUFFER_TYPE& bt) const;
 
-
 	ShaderProgram* shaderProgram_;
 	unsigned pointsToDraw_;
+
+	void allocateGPUMemory();
+	void populateBuffers();
+	void setUpVertexBufferAttributes();
+	void setUpNormalBufferAttributes();
+	void setUpColourBufferAttributes();
+	void enableBuffers();
+	void disableBuffers();
+
+
+	VBO* getVertexVBO();
+	VBO* getNormalVBO();
+	VBO* getColourVBO();
 };
 #endif

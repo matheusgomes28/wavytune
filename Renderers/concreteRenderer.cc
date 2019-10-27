@@ -12,6 +12,8 @@
 #include <glm/gtx/transform.hpp>
 #include <cmath>
 
+
+
 std::vector<std::string> getError()
 {
 	std::vector<std::string> retVal;
@@ -129,6 +131,52 @@ void ConcreteRenderer::createGPUBuffers()
 	vbos_.insert({ BUFFER_TYPE::COLOUR, colourVBO });
 }
 
+VBO* ConcreteRenderer::getVertexVBO()
+{
+	auto found = vbos_.find(BUFFER_TYPE::VERTEX);
+	if (found != end(vbos_)) {
+		if (found->second) {
+			return found->second;
+		}
+		else {
+			vbos_.erase(BUFFER_TYPE::VERTEX);
+		}
+	}
+
+	throw VertexBufferNotFound();
+}
+
+VBO* ConcreteRenderer::getNormalVBO()
+{
+	auto found = vbos_.find(BUFFER_TYPE::NORMAL);
+	if (found != end(vbos_)) {
+		if (found->second) {
+			return found->second;
+		}
+		else {
+			vbos_.erase(BUFFER_TYPE::NORMAL);
+		}
+	}
+
+	throw NormalBufferNotFound();
+}
+
+VBO* ConcreteRenderer::getColourVBO()
+{
+	auto found = vbos_.find(BUFFER_TYPE::COLOUR);
+	if (found != end(vbos_)) {
+		if (found->second) {
+			return found->second;
+		}
+		else {
+			vbos_.erase(BUFFER_TYPE::COLOUR);
+		}
+	}
+
+	throw ColourBufferNotFound();
+}
+
+
 void ConcreteRenderer::sendGPUData()
 {
 	pointsToDraw_ = 0;
@@ -136,48 +184,72 @@ void ConcreteRenderer::sendGPUData()
 	glBindVertexArray(vao_->getId());
 
 	// Allocate enough memory at the buffers
-	VBO* vertexVBO = vbos_[BUFFER_TYPE::VERTEX];
+	allocateGPUMemory();
+	populateBuffers();
+	setUpVertexBufferAttributes();
+	setUpNormalBufferAttributes();
+	setUpColourBufferAttributes();
+
+	auto errors = getError();
+	getShader()->unuse();
+}
+
+void ConcreteRenderer::allocateGPUMemory()
+{
+	//! Assumes we have already bound the 
+	//! vertex array object
+	VBO* vertexVBO = getVertexVBO();
 	vertexVBO->allocateMemory(getVertexMemoryNeeded());
-	VBO* normalVBO = vbos_[BUFFER_TYPE::NORMAL];
+	VBO* normalVBO = getNormalVBO();
 	normalVBO->allocateMemory(getNormalMemoryNeeded());
-	VBO* colourVBO = vbos_[BUFFER_TYPE::COLOUR];
+	VBO* colourVBO = getColourVBO();
 	colourVBO->allocateMemory(getColourMemoryNeeded());
+}
+
+void ConcreteRenderer::populateBuffers()
+{
+
+	VBO* vertexVBO = getVertexVBO();
+	VBO* normalVBO = getNormalVBO();
+	VBO* colourVBO = getColourVBO();	
 	
-	// Stores the offset (in bytes) to each buffer for
-	// where to start adding the next chunk of data
+	pointsToDraw_ = 0;
 	unsigned vertexOffset = 0;
 	unsigned normalOffset = 0;
 	unsigned colourOffset = 0;
 	for (auto& kvPair : entityData_) {
-		for (DrawBuffer* data : kvPair.second) {
-			vertexVBO->addData(data->getVertices().getData(), vertexOffset);
-			vertexOffset += data->getVertices().getGPUSize();
-
-			normalVBO->addData(data->getNormals().getData(), normalOffset);
-			normalOffset += data->getNormals().getGPUSize();
-
-			colourVBO->addData(data->getColours().getData(), colourOffset);
-			colourOffset += data->getColours().getGPUSize();
-
-			// Keep track of how many points to draw
-			pointsToDraw_ += data->getVertices().getData().size();
+		for (DrawBuffer* buffer : kvPair.second) {
+			vertexVBO->addData(buffer->getVertices().getData(), vertexOffset);
+			vertexOffset += buffer->getVertices().getGPUSize();
+			normalVBO->addData(buffer->getNormals().getData(), normalOffset);
+			normalOffset += buffer->getNormals().getGPUSize();
+			colourVBO->addData(buffer->getColours().getData(), colourOffset);
+			colourOffset += buffer->getNormals().getGPUSize();
+			
+			pointsToDraw_ += buffer->getVertices().getData().size();
 		}
-
-
-		// TODO : Add the logic for the matrices here
-		// for each entity, use SSBOs maybe?
 	}
 
-	// Sort out the vertex attributes here
+	// TODO : figure out how the ssbos will be sent
+	// for the entity transformations
+}
+
+void ConcreteRenderer::setUpVertexBufferAttributes()
+{
+	VBO* vertexVBO = getVertexVBO();
 	glBindBuffer(GL_ARRAY_BUFFER, vertexVBO->getId());
+
 	VertexAttribute* vertexAttribs = new VertexAttribute;
 	vertexAttribs->setOffset(0);
-	vertexAttribs->setSize(3);
+	vertexAttribs->setSize(3); // x,y,y
 	vertexAttribs->setNormalised(false);
 	vertexAttribs->setStride(0);
 	vertexAttribs->setType(VERTEX_TYPE::FLOAT);
 	vao_->addBufferConfigs(vertexVBO, vertexAttribs);
+
+	// Get the layout location
 	GLint posPtr = glGetAttribLocation(getShader()->getAddress(), "aPos");
+
 	glVertexAttribPointer(
 		posPtr,
 		vertexAttribs->getSize(),
@@ -187,16 +259,25 @@ void ConcreteRenderer::sendGPUData()
 		(GLvoid*) vertexAttribs->getOffset()
 	);
 
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
 
+void ConcreteRenderer::setUpNormalBufferAttributes()
+{
+	VBO* normalVBO = getNormalVBO();
 	glBindBuffer(GL_ARRAY_BUFFER, normalVBO->getId());
+
 	VertexAttribute* normalAttribs = new VertexAttribute;
 	normalAttribs->setOffset(0);
-	normalAttribs->setSize(3);
+	normalAttribs->setSize(3); // xn, yn, zn
 	normalAttribs->setNormalised(false);
 	normalAttribs->setStride(0);
 	normalAttribs->setType(VERTEX_TYPE::FLOAT);
 	vao_->addBufferConfigs(normalVBO, normalAttribs);
+
+	// Get the layout location for normals
 	GLint norPtr = glGetAttribLocation(getShader()->getAddress(), "aNor");
+
 	glVertexAttribPointer(
 		norPtr,
 		normalAttribs->getSize(),
@@ -205,17 +286,26 @@ void ConcreteRenderer::sendGPUData()
 		normalAttribs->getStride(),
 		(GLvoid*) normalAttribs->getOffset()
 	);
+	
+	glBindBuffer(GL_VERTEX_ARRAY, 0);
+}
 
-
+void ConcreteRenderer::setUpColourBufferAttributes()
+{
+	VBO* colourVBO = getColourVBO();
 	glBindBuffer(GL_ARRAY_BUFFER, colourVBO->getId());
+
 	VertexAttribute* colourAttribute = new VertexAttribute;
 	colourAttribute->setOffset(0);
-	colourAttribute->setSize(4);
-	colourAttribute->setNormalised(true);
+	colourAttribute->setSize(4); // r, g, b, a
+	colourAttribute->setNormalised(true); // Just in case its outside the range
 	colourAttribute->setStride(0);
 	colourAttribute->setType(VERTEX_TYPE::FLOAT);
 	vao_->addBufferConfigs(colourVBO, colourAttribute);
+	
+	// Get the layout location
 	GLint colPtr = glGetAttribLocation(getShader()->getAddress(), "aCol");
+
 	glVertexAttribPointer(
 		colPtr,
 		colourAttribute->getSize(),
@@ -224,12 +314,8 @@ void ConcreteRenderer::sendGPUData()
 		colourAttribute->getStride(),
 		(GLvoid*) colourAttribute->getOffset()
 	);
-	glEnableVertexAttribArray(colPtr);
-	glEnableVertexAttribArray(norPtr);
-	glEnableVertexAttribArray(posPtr);
 
-	auto errors = getError();
-	getShader()->unuse();
+	glBindBuffer(GL_VERTEX_ARRAY, 0);
 }
 
 void ConcreteRenderer::render(const glm::mat4& proj, const glm::mat4& view)
@@ -257,6 +343,7 @@ void ConcreteRenderer::render(const glm::mat4& proj, const glm::mat4& view)
 	// Enabling some features
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
+	enableBuffers();
 
 	// Enable vertices and normals for drawing
 	glBindVertexArray(vao_->getId());
@@ -264,8 +351,35 @@ void ConcreteRenderer::render(const glm::mat4& proj, const glm::mat4& view)
 	glBindVertexArray(0);
 
 
+	disableBuffers();
 	getShader()->unuse();
 	errors = getError();
+}
+
+void ConcreteRenderer::enableBuffers()
+{
+	// Get the layout locations
+	GLuint vertexPtr = glGetAttribLocation(getShader()->getAddress(), "aPos");
+	glEnableVertexAttribArray(vertexPtr);
+
+	GLuint normalPtr = glGetAttribLocation(getShader()->getAddress(), "aNor");
+	glEnableVertexAttribArray(normalPtr);
+
+	GLuint colourPtr = glGetAttribLocation(getShader()->getAddress(), "aCol");
+	glEnableVertexAttribArray(colourPtr);
+}
+
+void ConcreteRenderer::disableBuffers()
+{
+	// Get the layout locations
+	GLuint vertexPtr = glGetAttribLocation(getShader()->getAddress(), "aPos");
+	glDisableVertexAttribArray(vertexPtr);
+
+	GLuint normalPtr = glGetAttribLocation(getShader()->getAddress(), "aNor");
+	glDisableVertexAttribArray(normalPtr);
+
+	GLuint colourPtr = glGetAttribLocation(getShader()->getAddress(), "aCol");
+	glDisableVertexAttribArray(colourPtr);
 }
 
 
